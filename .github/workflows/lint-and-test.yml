@@ -6,13 +6,17 @@ name: Lint and Test Code
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
     paths-ignore: # ignore changes to workflow files and readmes
-      - '.github/**'   
+      - '.github/**'
       - 'README.md'
   pull_request:
     branches: [ "main" ]
+    tags:
+      - 'v*'
     paths-ignore: # ignore changes to workflow files and readmes
-      - '.github/**'   
+      - '.github/**'
       - 'README.md'
   workflow_dispatch:
 
