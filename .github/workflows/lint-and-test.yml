@@ -49,4 +49,4 @@ jobs:
         uv run mypy .
     - name: Test with pytest
       run: |
-        uv run pytest
+        uv run pytest --cov=.
