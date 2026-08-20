@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import lru_cache
 
@@ -19,13 +20,13 @@ class Settings(BaseSettings):
 
 # ensures the settings object is created once. Use this to get settings
 @lru_cache
-def get_settings():
-    return Settings()  # pyright: ignore[reportCallIssue]
+def get_settings() -> Settings:
+    return Settings()  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
 
 
 # add stuff that should be run here once. If they have state place that in app.state
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     engine = create_engine(settings.DATABASE_URL, echo=True)
     app.state.engine = engine
@@ -36,7 +37,7 @@ async def lifespan(app: FastAPI):
     app.state.engine.dispose()
 
 
-async def get_db(request: Request):
+async def get_db(request: Request) -> AsyncIterator[Session]:
     session = Session(request.app.state.engine)
     try:
         yield session

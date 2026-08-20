@@ -35,7 +35,7 @@ jobs:
       uses: astral-sh/setup-uv@v10.0.1
     - name: Setup environment
       run: uv sync --locked
-    - name: Lint with ruff
+    - name: Lint with ruff and mypy
       run: |
         # Lint code
         uv run ruff check
@@ -45,4 +45,4 @@ jobs:
         uv run mypy .
     - name: Test with pytest
       run: |
-        pytest
+        uv run pytest

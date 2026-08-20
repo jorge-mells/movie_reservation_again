@@ -8,11 +8,30 @@ dependencies = [
     "alembic>=1.19.0",
     "faker>=40.36.0",
     "fastapi[standard]>=0.141.1",
+    "mypy>=2.3.1",
+    "pre-commit>=4.6.2",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.14.2",
     "pyjwt>=2.13.0",
     "pymysql>=1.2.0",
     "pytest>=9.1.1",
     "python-dotenv>=1.2.2",
+    "ruff==0.16.3",
     "sqlmodel>=0.0.39",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*" = ["ALL"]
+
+[tool.mypy]
+explicit_package_bases = true
+strict = true
+ignore_missing_imports = true
+
+# Ignore type checking entirely for all migration files
+[[tool.mypy.overrides]]
+module = "alembic.versions.*"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

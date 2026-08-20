@@ -1,2 +1,2 @@
 from .reservations import *
-from .users import User
+from .users import *

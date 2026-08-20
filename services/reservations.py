@@ -1,4 +1,5 @@
-from typing import Annotated, Sequence
+from collections.abc import Sequence
+from typing import Annotated
 
 from fastapi import Depends, status
 from sqlmodel import Session, col, select

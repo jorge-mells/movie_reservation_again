@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, timezone
-from typing import Annotated, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Annotated, Any
 
 import jwt
 from fastapi import Depends, status
@@ -21,13 +21,13 @@ class UserService:
         self.settings = settings
         self.is_admin = is_admin
 
-    def _verify_password(self, plain_password, hashed_password) -> bool:
+    def _verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.password_hash.verify(plain_password, hashed_password)
 
-    def _get_password_hash(self, password) -> str:
+    def _get_password_hash(self, password: str) -> str:
         return self.password_hash.hash(password)
 
-    def get_user(self, username: Optional[str]) -> Optional[UserBase]:
+    def get_user(self, username: str | None) -> UserBase | None:
         cls = Admin if self.is_admin else User
         return self.db.exec(select(cls).where(cls.username == username)).one_or_none()
 
@@ -41,13 +41,13 @@ class UserService:
         return user
 
     def create_access_token(
-        self, data: dict, expires_delta: timedelta | None = None
+        self, data: dict[Any, Any], expires_delta: timedelta | None = None
     ) -> str:
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.now(timezone.utc) + expires_delta
+            expire = datetime.now(UTC) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+            expire = datetime.now(UTC) + timedelta(minutes=15)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(
             to_encode, self.settings.SECRET_KEY, algorithm=self.settings.ALGORITHM

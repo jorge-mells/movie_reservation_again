@@ -12,7 +12,7 @@ app.include_router(users.router)
 
 
 @app.exception_handler(ServiceError)
-async def service_error_handler(_request: Request, exc: ServiceError):
+async def service_error_handler(_request: Request, exc: ServiceError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
@@ -21,13 +21,13 @@ async def service_error_handler(_request: Request, exc: ServiceError):
 
 
 @app.get("/")
-async def root():
-    return {"see /docs for usage"}
+async def root() -> dict[str, str]:
+    return {"message": "see /docs for usage"}
 
 
 @app.get("/health")
-async def health():
-    return {"API is working"}
+async def health() -> dict[str, str]:
+    return {"message": "API is working"}
 
 
 # BUG: use FASTAPI_ENV to ensure that stuff that should only ran in dev ran then

@@ -1,5 +1,6 @@
 import random
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Any
 
 from faker import Faker
 from faker.providers import DynamicProvider
@@ -25,19 +26,19 @@ genre_provider = DynamicProvider(
 fake.add_provider(genre_provider)
 
 
-def generate_users(num=5) -> list[User]:
+def generate_users(num: int = 5) -> list[User]:
     users = [
         User(username=fake.name(), hashed_password=fake.password()) for _ in range(num)
     ]
     return users
 
 
-def generate_theaters(num=2) -> list[Theater]:
+def generate_theaters(num: int = 2) -> list[Theater]:
     theaters = [Theater(name=fake.name()) for _ in range(num)]
     return theaters
 
 
-def generate_seats(theaters: list[Theater], num=50) -> list[Seat]:
+def generate_seats(theaters: list[Theater], num: int = 50) -> list[Seat]:
     """Generate $num seats per theater"""
     seats = []
     for theater in theaters:
@@ -46,12 +47,12 @@ def generate_seats(theaters: list[Theater], num=50) -> list[Seat]:
     return seats
 
 
-def generate_genres(num=10) -> list[Genre]:
+def generate_genres(num: int = 10) -> list[Genre]:
     genres = [Genre(name=fake.movie_genre()) for _ in range(num)]
     return genres
 
 
-def generate_movies(genres: list[Genre], num=20) -> list[Movie]:
+def generate_movies(genres: list[Genre], num: int = 20) -> list[Movie]:
     movies = []
     for _ in range(num):
         random_genres = random.choices(genres, k=random.randrange(len(genres)))
@@ -63,7 +64,7 @@ def generate_movies(genres: list[Genre], num=20) -> list[Movie]:
 
 
 def get_or_create_concrete[T](
-    db: Session, model_class: type[T], items_data: list[dict]
+    db: Session, model_class: type[T], items_data: list[dict[str, Any]]
 ) -> list[T]:
     """
     Ensures a list of concrete items with explicit IDs exist in the database.
@@ -174,43 +175,43 @@ def generate_concrete_showtimes(db: Session) -> list[Showtime]:
             "id": 1,
             "movie": movie1,
             "theater": theater1,
-            "start_date": datetime(2026, 7, 8, 14),
-            "end_date": datetime(2026, 7, 8, 16),
+            "start_date": datetime(2026, 7, 8, 14, tzinfo=UTC),
+            "end_date": datetime(2026, 7, 8, 16, tzinfo=UTC),
         },
         {
             "id": 2,
             "movie": movie1,
             "theater": theater2,
-            "start_date": datetime(2026, 7, 8, 10),
-            "end_date": datetime(2026, 7, 8, 12),
+            "start_date": datetime(2026, 7, 8, 10, tzinfo=UTC),
+            "end_date": datetime(2026, 7, 8, 12, tzinfo=UTC),
         },
         {
             "id": 3,
             "movie": movie2,
             "theater": theater1,
-            "start_date": datetime(2026, 7, 9, 10),
-            "end_date": datetime(2026, 7, 9, 12),
+            "start_date": datetime(2026, 7, 9, 10, tzinfo=UTC),
+            "end_date": datetime(2026, 7, 9, 12, tzinfo=UTC),
         },
         {
             "id": 4,
             "movie": movie2,
             "theater": theater2,
-            "start_date": datetime(2026, 7, 9, 15),
-            "end_date": datetime(2026, 7, 9, 17),
+            "start_date": datetime(2026, 7, 9, 15, tzinfo=UTC),
+            "end_date": datetime(2026, 7, 9, 17, tzinfo=UTC),
         },
         {
             "id": 5,
             "movie": movie3,
             "theater": theater1,
-            "start_date": datetime(2026, 7, 10, 15),
-            "end_date": datetime(2026, 7, 10, 17),
+            "start_date": datetime(2026, 7, 10, 15, tzinfo=UTC),
+            "end_date": datetime(2026, 7, 10, 17, tzinfo=UTC),
         },
         {
             "id": 6,
             "movie": movie3,
             "theater": theater2,
-            "start_date": datetime(2026, 7, 10, 9),
-            "end_date": datetime(2026, 7, 10, 12),
+            "start_date": datetime(2026, 7, 10, 9, tzinfo=UTC),
+            "end_date": datetime(2026, 7, 10, 12, tzinfo=UTC),
         },
     ]
     return get_or_create_concrete(db, Showtime, showtime_data)

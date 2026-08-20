@@ -1,8 +1,10 @@
-from typing import Optional
+from typing import Any
 
 
 class ServiceError(Exception):
-    def __init__(self, status_code: int, detail: str, headers: Optional[dict] = None):
+    def __init__(
+        self, status_code: int, detail: str, headers: dict[Any, Any] | None = None
+    ):
         self.status_code = status_code
         self.detail = detail
         if headers:
