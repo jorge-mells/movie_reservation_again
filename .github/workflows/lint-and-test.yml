@@ -6,8 +6,14 @@ name: Lint and Test Code
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: # ignore changes to workflow files and readmes
+      - '.github/**'   
+      - 'README.md'
   pull_request:
     branches: [ "main" ]
+    paths-ignore: # ignore changes to workflow files and readmes
+      - '.github/**'   
+      - 'README.md'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +26,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
