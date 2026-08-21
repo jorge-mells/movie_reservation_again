@@ -24,7 +24,7 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS)
     access_token = user_service.create_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
@@ -44,7 +44,7 @@ async def logout_current_session(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> dict[str, str]:
     username = await user_service.validate_refresh_token(data.refresh_token)
-    await user_service.update_user(username, None, None, None)
+    await user_service.update_user(username, None, None, "")
     return {"message": "logged out successfully"}
 
 
@@ -55,7 +55,7 @@ async def refresh_current_session(
 ) -> Token:
     settings = get_settings()
     username = await user_service.validate_refresh_token(data.refresh_token)
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS)
     access_token = user_service.create_token(
         data={"sub": username}, expires_delta=access_token_expires
     )

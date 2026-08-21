@@ -16,7 +16,7 @@ async def service_error_handler(_request: Request, exc: ServiceError) -> JSONRes
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
-        headers=exc.headers or {},
+        headers=getattr(exc, "headers", {}) or {},
     )
 
 

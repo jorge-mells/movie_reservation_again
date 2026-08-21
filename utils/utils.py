@@ -13,9 +13,10 @@ from scripts.generate_data import generate_concrete_users
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///test_db.sqlite"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_SECONDS: int = 30 * 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     SECRET_KEY: str
+    FASTAPI_ENV: str = "development"
     model_config = SettingsConfigDict(env_file=".env")
 
 
@@ -25,15 +26,14 @@ def get_settings() -> Settings:
     return Settings()  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
 
 
-# add stuff that should be run here once. If they have state place that in app.state
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     engine = create_engine(settings.DATABASE_URL, echo=True)
     app.state.engine = engine
-    # BUG: remove this in prod or add a prod variable for it!!
-    session = Session(app.state.engine)
-    generate_concrete_users(session)
+    if settings.FASTAPI_ENV == "development":
+        session = Session(app.state.engine)
+        generate_concrete_users(session)
     yield
     app.state.engine.dispose()
 

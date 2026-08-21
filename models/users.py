@@ -5,9 +5,9 @@ from zxcvbn import zxcvbn
 
 class UserBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
-    username: str
+    username: str = Field(unique=True)
     hashed_password: str
-    refresh_token: str | None = Field(default=None)
+    refresh_token: str = ""  # empty string denotes a logged out user
 
 
 class User(UserBase, table=True):

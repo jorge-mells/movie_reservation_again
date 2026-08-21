@@ -5,6 +5,7 @@ import jwt
 from fastapi import Depends, status
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from models.users import Admin, TokenData, User, UserBase
@@ -21,7 +22,7 @@ class UserService:
         self.settings = settings
         self.is_admin = is_admin
 
-    def _verify_password(self, plain_password: str, hashed_password: str) -> bool:
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.password_hash.verify(plain_password, hashed_password)
 
     def _get_password_hash(self, password: str) -> str:
@@ -34,9 +35,9 @@ class UserService:
     def authenticate_user(self, username: str, password: str) -> bool | UserBase:
         user = self.get_user(username)
         if not user:
-            self._verify_password(password, self.DUMMY_HASH)
+            self.verify_password(password, self.DUMMY_HASH)
             return False
-        if not self._verify_password(password, user.hashed_password):
+        if not self.verify_password(password, user.hashed_password):
             return False
         return user
 
@@ -55,12 +56,21 @@ class UserService:
             )
         if password:
             user.hashed_password = self._get_password_hash(password)
-        if refresh_token:
+        if refresh_token is not None:
             user.refresh_token = refresh_token
         if new_username:
             user.username = new_username
-        self.db.commit()
-        self.db.refresh(user)
+
+        try:
+            self.db.commit()
+            self.db.refresh(user)
+        except IntegrityError as exc:
+            self.db.rollback()
+            if "username" in str(exc).lower():
+                raise ServiceError(
+                    detail="username already taken",
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
         return user
 
     def create_token(
@@ -96,7 +106,9 @@ class UserService:
         except InvalidTokenError:
             raise credentials_exception
         user = self.get_user(username=token_data.username)
-        if user is None:
+        if (
+            user is None or user.refresh_token == ""
+        ):  # user doesn't exist or is logged out
             raise credentials_exception
         return user
 
