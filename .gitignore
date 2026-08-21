@@ -10,3 +10,8 @@ wheels/
 .venv
 test_db.sqlite
 .env
+
+# pytest
+.coverage
+.coverage.*
+htmlcov/

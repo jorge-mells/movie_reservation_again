@@ -15,9 +15,12 @@ dependencies = [
     "pyjwt>=2.13.0",
     "pymysql>=1.2.0",
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
     "python-dotenv>=1.2.2",
     "ruff==0.16.3",
     "sqlmodel>=0.0.39",
+    "zxcvbn-python>=4.4.24",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -35,3 +38,15 @@ ignore_errors = true
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+asyncio_mode = "auto"
+filterwarnings = ["ignore:deprecated:DeprecationWarning:zxcvbn.*"]
+
+[tool.coverage.run]
+source = [
+    ".",
+] # Change this to your app source directory if applicable (e.g., ["src"])
+omit = ["*/tests/*", "conftest.py", "scripts/*", "alembic/*", "utils/*"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true

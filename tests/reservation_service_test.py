@@ -18,8 +18,11 @@ def session() -> Generator[Session]:
     engine = create_engine("sqlite:///:memory:")
     SQLModel.metadata.create_all(engine)
     session = Session(engine)
-    yield session
-    session.close()
+    try:
+        yield session
+    finally:
+        session.close()
+        engine.dispose()
 
 
 def test_get_movies(session: Session) -> None:

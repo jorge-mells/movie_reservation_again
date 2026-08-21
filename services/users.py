@@ -40,7 +40,30 @@ class UserService:
             return False
         return user
 
-    def create_access_token(
+    async def update_user(
+        self,
+        username: str,
+        new_username: str | None,
+        password: str | None,
+        refresh_token: str | None,
+    ) -> UserBase:
+        cls = Admin if self.is_admin else User
+        user = self.db.exec(select(cls).where(cls.username == username)).one_or_none()
+        if not user:
+            raise ServiceError(
+                status_code=status.HTTP_409_CONFLICT, detail="user does not exist"
+            )
+        if password:
+            user.hashed_password = self._get_password_hash(password)
+        if refresh_token:
+            user.refresh_token = refresh_token
+        if new_username:
+            user.username = new_username
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def create_token(
         self, data: dict[Any, Any], expires_delta: timedelta | None = None
     ) -> str:
         to_encode = data.copy()
@@ -76,6 +99,47 @@ class UserService:
         if user is None:
             raise credentials_exception
         return user
+
+    async def validate_refresh_token(self, token: str) -> str:  # return username
+        credentials_exception = ServiceError(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        if not token:
+            raise credentials_exception
+        try:
+            payload = jwt.decode(
+                token, self.settings.SECRET_KEY, algorithms=[self.settings.ALGORITHM]
+            )
+            username = payload.get("sub")
+            if username is None:
+                raise credentials_exception
+            token_data = TokenData(username=username)
+        except InvalidTokenError:
+            raise credentials_exception
+        user = self.get_user(username=token_data.username)
+        if user is None:
+            raise credentials_exception
+
+        if user.refresh_token != token:
+            raise credentials_exception
+        assert isinstance(username, str)
+        return username
+
+    async def create_user(self, username: str, password: str) -> UserBase:
+        existing_user = self.get_user(username)
+        if existing_user:
+            raise ServiceError(
+                status_code=status.HTTP_409_CONFLICT, detail="user already exists"
+            )
+        cls = Admin if self.is_admin else User
+        hashed_password = self._get_password_hash(password)
+        new_user = cls(username=username, hashed_password=hashed_password)
+        self.db.add(new_user)
+        self.db.commit()
+        self.db.refresh(new_user)
+        return new_user
 
 
 def get_user_service(
