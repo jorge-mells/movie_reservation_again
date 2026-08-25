@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["Lint and Test Code"]
+    workflows: ["CI"]
     types:
       - completed
   workflow_dispatch:

@@ -2,10 +2,8 @@
 - [About](#about)
 - [Getting Started](#getting_started)
 - [Deployment](#deployment)
-- [Usage](#usage)
 - [Built Using](#built_using)
-- [TODO](../TODO.md)
-- [Contributing](../CONTRIBUTING.md)
+<!-- - [Contributing](../CONTRIBUTING.md) -->
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgement)
 
@@ -28,7 +26,12 @@ These instructions will get you a copy of the project up and running on your loc
 Install python and uv([install uv](https://docs.astral.sh/uv/getting-started/installation/)) to get started
 
 ### Installing
-A step by step series of examples that tell you how to get a development env running.
+Setup the project
+
+```
+uv sync
+uv run pre-commit install
+```
 
 Copy the relevant environment variables from `.env.example` to `.env`. At the very minimum copy SECRET_KEY. If you don't want to use the test db, make sure to set DATABASE_URL.
 
@@ -49,8 +52,8 @@ uv run fastapi dev
 
 Try it with the following(replace 8000 with your actual port) or open a browser and type `localhost:8000` in the address bar:
 ```
-curl http://localhost:8000
--> {"message":"see /docs for usage"}
+$curl http://localhost:8000
+{"message":"see /docs for usage"}
 ```
 
 ## 🔧 Running the tests <a name = "tests"></a>
@@ -72,6 +75,7 @@ uv run pre-commit run --all-files
 
 ## 🚀 Deployment <a name = "deployment"></a>
 See [movie_reservation_deployment](https://github.com/jorge-mells/movie_reservation_deployment) for a guide on how to deploy securely on hetzner cloud with a mysql db
+> NOTE: This repo has not yet been released but will be hopefully soon.
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 - [FastAPI](https://fastapi.tiangolo.com/) - Web Framework
