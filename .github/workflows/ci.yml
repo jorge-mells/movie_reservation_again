@@ -2,11 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -14,40 +14,37 @@ permissions:
 
 jobs:
   ci:
-
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.13"
-    - name: Install uv
-      uses: astral-sh/setup-uv@v10.0.1
-      with:
-        enable-cache: true
-    - name: Setup environment
-      run: uv sync --locked
-    - name: Run Trivy vulnerability scanner in filesystem mode
-      uses: aquasecurity/trivy-action@v0.36.0
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'table'
-        severities: 'HIGH,CRITICAL'
-        exit-code: '1'
-    - name: Lint with ruff and mypy
-      run: |
-        # Lint code
-        uv run ruff check
-        # check if code is formatted
-        uv run ruff format --check
-        # Type check
-        uv run mypy .
-    - name: Test with pytest
-      run: |
-        uv run pytest --cov=.
-
-      
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+      - name: Setup environment
+        run: uv sync --locked
+      - name: Run Trivy vulnerability scanner in filesystem mode
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          severities: "HIGH,CRITICAL"
+          exit-code: "1"
+      - name: Lint with ruff and mypy
+        run: |
+          # Lint code
+          uv run ruff check
+          # check if code is formatted
+          uv run ruff format --check
+          # Type check
+          uv run mypy .
+      - name: Test with pytest
+        run: |
+          uv run pytest --cov=.

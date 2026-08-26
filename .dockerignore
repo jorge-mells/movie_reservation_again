@@ -1,0 +1,26 @@
+# Version Control
+.git
+.github
+
+# Local Python Caches & Build Artifacts
+__pycache__
+**/__pycache__
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# Local Virtual Environment (Crucial: Let Docker build its own!)
+.venv
+
+# Secrets and Local Environment Configs
+.env
+.env.*
+
+# Local Testing & Databases
+.coverage
+test_db.sqlite
+tests/
+
+# Documentation & Metadata
+README.md
+LICENSE.md

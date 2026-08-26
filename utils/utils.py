@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from functools import lru_cache
 
@@ -6,8 +6,6 @@ from fastapi import FastAPI, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlmodel import Session, create_engine
-
-from scripts.generate_data import generate_concrete_users
 
 
 class Settings(BaseSettings):
@@ -27,11 +25,13 @@ def get_settings() -> Settings:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     settings = get_settings()
     engine = create_engine(settings.DATABASE_URL, echo=True)
     app.state.engine = engine
     if settings.FASTAPI_ENV == "development":
+        from scripts.generate_data import generate_concrete_users
+
         session = Session(app.state.engine)
         generate_concrete_users(session)
     yield
