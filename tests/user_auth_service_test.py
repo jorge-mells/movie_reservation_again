@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from models.users import User
 from scripts.generate_data import generate_concrete_users
-from services.users import UserService
+from services.auth import AuthService
 from utils.exceptions import ServiceError
 from utils.utils import Settings
 
@@ -30,13 +30,13 @@ def session(settings: Settings) -> Generator[Session]:
 
 
 @pytest.fixture
-def user_service(session: Session, settings: Settings) -> UserService:
+def user_service(session: Session, settings: Settings) -> AuthService:
     generate_concrete_users(session)
-    user_service = UserService(session, settings, False)
+    user_service = AuthService(session, settings, False)
     return user_service
 
 
-async def test_valid_registration(session: Session, user_service: UserService) -> None:
+async def test_valid_registration(session: Session, user_service: AuthService) -> None:
     expected_username = "testuser3"
     expected_password = "correct-tapestry-window-lantern-849"
     expected_id = 3
@@ -48,7 +48,7 @@ async def test_valid_registration(session: Session, user_service: UserService) -
     assert user_service.verify_password(expected_password, actual_user.hashed_password)
 
 
-async def test_invalid_registration(user_service: UserService) -> None:
+async def test_invalid_registration(user_service: AuthService) -> None:
     username = "testuser2"
     password = "correct-tapestry-window-lantern-849"
     with pytest.raises(ServiceError, match="user already exists"):
@@ -56,7 +56,7 @@ async def test_invalid_registration(user_service: UserService) -> None:
 
 
 async def test_valid_username_update(
-    session: Session, user_service: UserService
+    session: Session, user_service: AuthService
 ) -> None:
     expected_id = 1
     await user_service.update_user("testuser1", "testuser3", None, None)
@@ -69,7 +69,7 @@ async def test_valid_username_update(
 
 
 async def test_valid_password_update(
-    session: Session, user_service: UserService
+    session: Session, user_service: AuthService
 ) -> None:
     expected_id = 2
     await user_service.update_user("testuser2", None, "newpassword", None)
@@ -82,7 +82,7 @@ async def test_valid_password_update(
 
 
 async def test_valid_refresh_token_update(
-    session: Session, settings: Settings, user_service: UserService
+    session: Session, settings: Settings, user_service: AuthService
 ) -> None:
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     expected_refresh_token = user_service.create_token(
@@ -101,7 +101,7 @@ async def test_valid_refresh_token_update(
 
 
 async def test_valid_username_password_update(
-    session: Session, user_service: UserService
+    session: Session, user_service: AuthService
 ) -> None:
     expected_id = 2
     await user_service.update_user("testuser2", "testuser3", "newpassword", None)
@@ -114,7 +114,7 @@ async def test_valid_username_password_update(
 
 
 async def test_valid_all_info_update(
-    session: Session, settings: Settings, user_service: UserService
+    session: Session, settings: Settings, user_service: AuthService
 ) -> None:
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     expected_refresh_token = user_service.create_token(

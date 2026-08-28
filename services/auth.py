@@ -13,7 +13,7 @@ from utils.exceptions import ServiceError
 from utils.utils import Settings, get_db, get_settings
 
 
-class UserService:
+class AuthService:
     password_hash = PasswordHash.recommended()
     DUMMY_HASH = password_hash.hash("dummypassword")
 
@@ -163,6 +163,6 @@ def get_user_service(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
-) -> UserService:
+) -> AuthService:
     is_admin = request.url.path.startswith("/admin")
-    return UserService(db, settings, is_admin)
+    return AuthService(db, settings, is_admin)

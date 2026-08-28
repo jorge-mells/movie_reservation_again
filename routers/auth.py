@@ -5,18 +5,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from models.users import Admin, AuthRequest, Token, UserBase, UserCreate, UserResponse
-from services.users import UserService, get_user_service
+from services.auth import AuthService, get_user_service
 from utils.utils import admin_oauth2_scheme, get_settings, oauth2_scheme
 
-router = APIRouter(tags=["Authentication"])
-admin_router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(tags=["User Authentication"])
+admin_router = APIRouter(prefix="/admin", tags=["Admin Authentication"])
 
 
 @router.post("/login")
 @admin_router.post("/login")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
 ) -> Token:
     settings = get_settings()
     user = user_service.authenticate_user(form_data.username, form_data.password)
@@ -46,7 +46,7 @@ async def login_for_access_token(
 @admin_router.post("/logout")
 async def logout_current_session(
     data: AuthRequest,
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
 ) -> dict[str, str]:
     payload = await user_service.validate_refresh_token(data.refresh_token)
     username = payload.get("sub")
@@ -59,7 +59,7 @@ async def logout_current_session(
 @admin_router.post("/refresh")
 async def refresh_current_session(
     data: AuthRequest,
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
 ) -> Token:
     settings = get_settings()
     payload = await user_service.validate_refresh_token(data.refresh_token)
@@ -84,7 +84,7 @@ async def refresh_current_session(
 @router.post("/register", response_model=UserResponse)
 async def create_new_user(
     data: UserCreate,
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
 ) -> UserBase:
     user = await user_service.create_user(data.username, data.password)
     return user
@@ -95,7 +95,7 @@ async def create_new_user(
 async def create_new_admin(
     data: UserCreate,
     token: Annotated[str, Depends(admin_oauth2_scheme)],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
 ) -> UserBase:
     await user_service.get_current_user(token)
     user = await user_service.create_user(data.username, data.password)
@@ -104,7 +104,7 @@ async def create_new_admin(
 
 @router.get("/users/me", response_model=UserResponse)
 async def read_users_me(
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> UserBase:
     print("here")
@@ -113,7 +113,7 @@ async def read_users_me(
 
 @admin_router.get("/users/me", response_model=UserResponse)
 async def read_admin_users_me(
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     token: Annotated[str, Depends(admin_oauth2_scheme)],
 ) -> UserBase:
     return await user_service.get_current_user(token)

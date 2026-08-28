@@ -1,15 +1,15 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from routers import reservations, users
+from routers import auth, reservations
 from utils.exceptions import ServiceError
 from utils.utils import lifespan
 
 app = FastAPI(lifespan=lifespan)
 
 # NOTE: include routers here
-app.include_router(users.router)
-app.include_router(users.admin_router)
+app.include_router(auth.router)
+app.include_router(auth.admin_router)
 app.include_router(reservations.router)
 
 

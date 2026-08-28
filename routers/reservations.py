@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends
 
 from models import Movie, Reservation, Seat, Showtime
 from models.reservations import ReservationCreate
+from services.auth import AuthService, get_user_service
 from services.reservations import ReservationService, get_reservation_service
-from services.users import UserService, get_user_service
 from utils.utils import oauth2_scheme
 
 router = APIRouter(tags=["Reservations"])
@@ -38,7 +38,7 @@ async def get_seats(
 @router.get("/users/me/reservations")
 async def get_user_reservations(
     token: Annotated[str, Depends(oauth2_scheme)],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     movie_service: Annotated[ReservationService, Depends(get_reservation_service)],
 ) -> Sequence[Reservation]:
     user = await user_service.get_current_user(token)
@@ -49,7 +49,7 @@ async def get_user_reservations(
 @router.get("/users/me/reserved_showtimes")
 async def get_reserved_showtimes(
     token: Annotated[str, Depends(oauth2_scheme)],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     movie_service: Annotated[ReservationService, Depends(get_reservation_service)],
 ) -> Sequence[Showtime]:
     user = await user_service.get_current_user(token)
@@ -61,7 +61,7 @@ async def get_reserved_showtimes(
 async def get_reserved_seats(
     showtime_id: int,
     token: Annotated[str, Depends(oauth2_scheme)],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     movie_service: Annotated[ReservationService, Depends(get_reservation_service)],
 ) -> Sequence[Seat]:
     _ = await user_service.get_current_user(token)
@@ -72,7 +72,7 @@ async def get_reserved_seats(
 async def create_reservation(
     reservationRequest: ReservationCreate,
     token: Annotated[str, Depends(oauth2_scheme)],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     movie_service: Annotated[ReservationService, Depends(get_reservation_service)],
 ) -> Reservation:
     user = await user_service.get_current_user(token)
@@ -86,7 +86,7 @@ async def create_reservation(
 async def delete_reservation(
     reservation_id: int,
     token: Annotated[str, Depends(oauth2_scheme)],
-    user_service: Annotated[UserService, Depends(get_user_service)],
+    user_service: Annotated[AuthService, Depends(get_user_service)],
     movie_service: Annotated[ReservationService, Depends(get_reservation_service)],
 ) -> dict[str, str]:
     user = await user_service.get_current_user(token)
