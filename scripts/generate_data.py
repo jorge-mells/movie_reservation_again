@@ -8,7 +8,7 @@ from pwdlib import PasswordHash
 from sqlmodel import Session
 
 from models.reservations import Genre, Movie, Reservation, Seat, Showtime, Theater
-from models.users import User
+from models.users import Admin, User
 
 fake = Faker()
 genre_provider = DynamicProvider(
@@ -105,6 +105,18 @@ def generate_concrete_users(db: Session) -> list[User]:
         },
     ]
     return get_or_create_concrete(db, User, user_data)
+
+
+def generate_concrete_admins(db: Session) -> list[Admin]:
+    password_hash = PasswordHash.recommended()
+    user_data = [
+        {
+            "id": 1,
+            "username": "admin1",
+            "hashed_password": password_hash.hash("admin1"),
+        },
+    ]
+    return get_or_create_concrete(db, Admin, user_data)
 
 
 def generate_concrete_theaters(db: Session) -> list[Theater]:
@@ -228,3 +240,14 @@ def generate_concrete_reservations(db: Session) -> list[Reservation]:
         {"id": 3, "user": user2, "showtime": showtime5, "seat": seat12},
     ]
     return get_or_create_concrete(db, Reservation, reservation_data)
+
+
+def generate_all_data(db: Session) -> None:
+    generate_concrete_users(db)
+    generate_concrete_admins(db)
+    generate_concrete_theaters(db)
+    generate_concrete_seats(db)
+    generate_concrete_genres(db)
+    generate_concrete_movies(db)
+    generate_concrete_showtimes(db)
+    generate_concrete_reservations(db)

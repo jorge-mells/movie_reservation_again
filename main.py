@@ -9,6 +9,7 @@ app = FastAPI(lifespan=lifespan)
 
 # NOTE: include routers here
 app.include_router(users.router)
+app.include_router(users.admin_router)
 app.include_router(reservations.router)
 
 

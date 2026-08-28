@@ -33,10 +33,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     engine = create_engine(settings.DATABASE_URL, echo=echo)
     app.state.engine = engine
     if settings.FASTAPI_ENV == "development":
-        from scripts.generate_data import generate_concrete_reservations
+        from scripts.generate_data import generate_all_data
 
         session = Session(app.state.engine)
-        _ = generate_concrete_reservations(session)
+        generate_all_data(session)
     yield
     app.state.engine.dispose()
 
@@ -50,4 +50,8 @@ async def get_db(request: Request) -> AsyncIterator[Session]:
         session.close()
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="UserOAuth2")
+
+admin_oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/admin/login", scheme_name="AdminOAuth2"
+)

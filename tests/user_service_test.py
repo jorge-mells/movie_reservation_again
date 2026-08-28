@@ -86,7 +86,8 @@ async def test_valid_refresh_token_update(
 ) -> None:
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     expected_refresh_token = user_service.create_token(
-        data={"sub": "testuser2"}, expires_delta=refresh_token_expires
+        data={"sub": "testuser2", "is_admin": False},
+        expires_delta=refresh_token_expires,
     )
     await user_service.update_user("testuser2", None, None, expected_refresh_token)
     expected_id = 2
@@ -94,9 +95,8 @@ async def test_valid_refresh_token_update(
     actual_user = session.get(User, expected_id)
     assert actual_user is not None
     assert actual_user.username == "testuser2"
-    assert (
-        await user_service.validate_refresh_token(expected_refresh_token) == "testuser2"
-    )
+    actual_payload = await user_service.validate_refresh_token(expected_refresh_token)
+    assert actual_payload["sub"] == "testuser2"
     assert user_service.verify_password("testuser2", actual_user.hashed_password)
 
 
@@ -118,7 +118,8 @@ async def test_valid_all_info_update(
 ) -> None:
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     expected_refresh_token = user_service.create_token(
-        data={"sub": "testuser3"}, expires_delta=refresh_token_expires
+        data={"sub": "testuser3", "is_admin": False},
+        expires_delta=refresh_token_expires,
     )
     await user_service.update_user(
         "testuser2", "testuser3", "newpassword", expected_refresh_token
@@ -128,9 +129,8 @@ async def test_valid_all_info_update(
     actual_user = session.get(User, expected_id)
     assert actual_user is not None
     assert actual_user.username == "testuser3"
-    assert (
-        await user_service.validate_refresh_token(expected_refresh_token) == "testuser3"
-    )
+    actual_payload = await user_service.validate_refresh_token(expected_refresh_token)
+    assert actual_payload["sub"] == "testuser3"
     assert user_service.verify_password("newpassword", actual_user.hashed_password)
 
 

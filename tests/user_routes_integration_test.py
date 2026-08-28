@@ -54,6 +54,10 @@ def test_incorrect_login(client: TestClient) -> None:
     response = client.post("/refresh", json={"refresh_token": "invalid_refresh_token"})
     assert response.status_code == 401
 
+    # test admin incorrectly logging in as user
+    response = client.post("/login", data={"username": "admin1", "password": "admin1"})
+    assert response.status_code == 401
+
 
 def test_refresh_token(client: TestClient) -> None:
     response = client.post(

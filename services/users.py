@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 import jwt
-from fastapi import Depends, status
+from fastapi import Depends, Request, status
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from sqlalchemy.exc import IntegrityError
@@ -100,7 +100,9 @@ class UserService:
                 token, self.settings.SECRET_KEY, algorithms=[self.settings.ALGORITHM]
             )
             username = payload.get("sub")
-            if username is None:
+            is_admin = payload.get("is_admin")
+            print(f"isadmin: {is_admin}")
+            if username is None or is_admin != self.is_admin:
                 raise credentials_exception
             token_data = TokenData(username=username)
         except InvalidTokenError:
@@ -112,7 +114,9 @@ class UserService:
             raise credentials_exception
         return user
 
-    async def validate_refresh_token(self, token: str) -> str:  # return username
+    async def validate_refresh_token(
+        self, token: str
+    ) -> dict[str, Any]:  # return payload
         credentials_exception = ServiceError(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -125,7 +129,8 @@ class UserService:
                 token, self.settings.SECRET_KEY, algorithms=[self.settings.ALGORITHM]
             )
             username = payload.get("sub")
-            if username is None:
+            is_admin = payload.get("is_admin")
+            if username is None or is_admin != self.is_admin:
                 raise credentials_exception
             token_data = TokenData(username=username)
         except InvalidTokenError:
@@ -137,7 +142,7 @@ class UserService:
         if user.refresh_token != token:
             raise credentials_exception
         assert isinstance(username, str)
-        return username
+        return payload
 
     async def create_user(self, username: str, password: str) -> UserBase:
         existing_user = self.get_user(username)
@@ -155,14 +160,9 @@ class UserService:
 
 
 def get_user_service(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> UserService:
-    return UserService(db, settings)
-
-
-def get_admin_service(
-    db: Annotated[Session, Depends(get_db)],
-    settings: Annotated[Settings, Depends(get_settings)],
-) -> UserService:
-    return UserService(db, settings, True)
+    is_admin = request.url.path.startswith("/admin")
+    return UserService(db, settings, is_admin)
