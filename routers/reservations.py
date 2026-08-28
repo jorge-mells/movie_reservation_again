@@ -82,13 +82,14 @@ async def create_reservation(
     )
 
 
-@router.delete("/reservations/{reservation_id}")
+@router.delete("/users/me/reservations/{reservation_id}")
 async def delete_reservation(
     reservation_id: int,
     token: Annotated[str, Depends(oauth2_scheme)],
     user_service: Annotated[UserService, Depends(get_user_service)],
     movie_service: Annotated[ReservationService, Depends(get_reservation_service)],
 ) -> dict[str, str]:
-    _ = await user_service.get_current_user(token)
-    movie_service.delete_reservation(reservation_id)
+    user = await user_service.get_current_user(token)
+    assert user.id is not None
+    movie_service.delete_reservation(reservation_id, user.id)
     return {"message": "reservation deleted successfully"}

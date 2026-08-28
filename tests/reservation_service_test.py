@@ -161,3 +161,28 @@ def test_create_reservation_invalid(session: Session) -> None:
     with pytest.raises(ServiceError) as excinfo:
         reservation_service.create_reservation(1, 5, 2)
         assert "seat already been reserved" in str(excinfo.value).lower()
+
+
+def test_delete_reservation_correct(session: Session) -> None:
+    possible_reservations = generate_concrete_reservations(session)
+    reservation_service = ReservationService(session)
+
+    # test deleting a reservation
+    reservation_service.delete_reservation(1, 1)
+    actual_reservations = reservation_service.get_reservations(1)
+    assert len(actual_reservations) < len(possible_reservations)
+
+
+def test_delete_reservation_invalid(session: Session) -> None:
+    generate_concrete_reservations(session)
+    reservation_service = ReservationService(session)
+
+    # test deleting nonexistent reservation
+    with pytest.raises(ServiceError) as excinfo:
+        reservation_service.delete_reservation(10, 1)
+        assert "reservation does not exist" in str(excinfo.value).lower()
+
+    # test deleting a reservation not owned by the user
+    with pytest.raises(ServiceError) as excinfo:
+        reservation_service.delete_reservation(3, 1)
+        assert "invalid reservation" in str(excinfo.value).lower()

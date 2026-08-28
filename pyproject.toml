@@ -56,3 +56,8 @@ omit = ["*/tests/*", "conftest.py", "scripts/*", "alembic/*", "utils/*"]
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+# reportAny = false # turn this on if you want stricter type checking(i.e: ensuring you can't use type Any)
+# reportUnknownVariableType=false

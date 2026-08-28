@@ -99,10 +99,14 @@ class ReservationService:
         self.db.refresh(new_reservation)
         return new_reservation
 
-    def delete_reservation(self, reservation_id: int) -> None:
+    def delete_reservation(self, reservation_id: int, user_id: int) -> None:
         existing_reservation = self.already_exists(
             Reservation, reservation_id, "This reservation does not exist"
         )
+        if existing_reservation.user_id != user_id:
+            raise ServiceError(
+                status_code=status.HTTP_409_CONFLICT, detail="Invalid reservation"
+            )
         self.db.delete(existing_reservation)
 
 
