@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 30 * 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     SECRET_KEY: str
-    FASTAPI_ENV: str = "development"
+    FASTAPI_ENV: str = "production"
     model_config = SettingsConfigDict(env_file=".env")
 
 
@@ -27,13 +27,16 @@ def get_settings() -> Settings:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     settings = get_settings()
-    engine = create_engine(settings.DATABASE_URL, echo=True)
+    echo = False
+    if settings.FASTAPI_ENV == "development":
+        echo = True
+    engine = create_engine(settings.DATABASE_URL, echo=echo)
     app.state.engine = engine
     if settings.FASTAPI_ENV == "development":
-        from scripts.generate_data import generate_concrete_users
+        from scripts.generate_data import generate_concrete_reservations
 
         session = Session(app.state.engine)
-        generate_concrete_users(session)
+        _ = generate_concrete_reservations(session)
     yield
     app.state.engine.dispose()
 
@@ -47,4 +50,4 @@ async def get_db(request: Request) -> AsyncIterator[Session]:
         session.close()
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")

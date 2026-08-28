@@ -12,7 +12,7 @@ from utils.utils import get_db
 
 class ReservationService:
     def __init__(self, db: Session) -> None:
-        self.db = db
+        self.db: Session = db
 
     def get_movies(self) -> Sequence[Movie]:
         movies = self.db.exec(select(Movie)).all()
@@ -68,7 +68,9 @@ class ReservationService:
             )
         return existing_item
 
-    def create_reservation(self, user_id: int, showtime_id: int, seat_id: int) -> None:
+    def create_reservation(
+        self, user_id: int, showtime_id: int, seat_id: int
+    ) -> Reservation:
         existing_reservation = self.db.exec(
             select(Reservation).where(
                 showtime_id == Reservation.showtime_id, seat_id == Reservation.seat_id
@@ -79,7 +81,7 @@ class ReservationService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="This seat has already been reserved for the showtime provided",
             )
-        self.already_exists(User, user_id, "This user does not exist")
+        _ = self.already_exists(User, user_id, "This user does not exist")
         existing_showtime = self.already_exists(
             Showtime, showtime_id, "This showtime does not exist"
         )
@@ -94,6 +96,8 @@ class ReservationService:
         )
         self.db.add(new_reservation)
         self.db.commit()
+        self.db.refresh(new_reservation)
+        return new_reservation
 
     def delete_reservation(self, reservation_id: int) -> None:
         existing_reservation = self.already_exists(

@@ -18,9 +18,9 @@ class UserService:
     DUMMY_HASH = password_hash.hash("dummypassword")
 
     def __init__(self, db: Session, settings: Settings, is_admin: bool = False) -> None:
-        self.db = db
-        self.settings = settings
-        self.is_admin = is_admin
+        self.db: Session = db
+        self.settings: Settings = settings
+        self.is_admin: bool = is_admin
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.password_hash.verify(plain_password, hashed_password)
@@ -35,7 +35,7 @@ class UserService:
     def authenticate_user(self, username: str, password: str) -> bool | UserBase:
         user = self.get_user(username)
         if not user:
-            self.verify_password(password, self.DUMMY_HASH)
+            _ = self.verify_password(password, self.DUMMY_HASH)
             return False
         if not self.verify_password(password, user.hashed_password):
             return False

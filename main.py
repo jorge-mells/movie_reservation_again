@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from routers import users
+from routers import reservations, users
 from utils.exceptions import ServiceError
 from utils.utils import lifespan
 
@@ -9,6 +9,7 @@ app = FastAPI(lifespan=lifespan)
 
 # NOTE: include routers here
 app.include_router(users.router)
+app.include_router(reservations.router)
 
 
 @app.exception_handler(ServiceError)

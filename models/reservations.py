@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from pydantic import BaseModel
 from sqlmodel import Field, Relationship, SQLModel
 
 from models.users import User
@@ -57,3 +58,8 @@ class ReservationResponse(SQLModel):
     id: int | None
     showtime: Showtime
     movie: Movie
+
+
+class ReservationCreate(BaseModel):
+    showtime_id: int
+    seat_id: int

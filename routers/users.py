@@ -8,7 +8,7 @@ from models.users import AuthRequest, Token, User, UserBase, UserCreate, UserRes
 from services.users import UserService, get_user_service
 from utils.utils import get_settings, oauth2_scheme
 
-router = APIRouter()
+router = APIRouter(tags=["Authentication"])
 
 
 @router.post("/login")
@@ -32,7 +32,7 @@ async def login_for_access_token(
     refresh_token = user_service.create_token(
         data={"sub": user.username}, expires_delta=refresh_token_expires
     )
-    await user_service.update_user(user.username, None, None, refresh_token)
+    _ = await user_service.update_user(user.username, None, None, refresh_token)
     return Token(
         refresh_token=refresh_token, access_token=access_token, token_type="bearer"
     )
@@ -44,7 +44,7 @@ async def logout_current_session(
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> dict[str, str]:
     username = await user_service.validate_refresh_token(data.refresh_token)
-    await user_service.update_user(username, None, None, "")
+    _ = await user_service.update_user(username, None, None, "")
     return {"message": "logged out successfully"}
 
 
@@ -63,7 +63,7 @@ async def refresh_current_session(
     refresh_token = user_service.create_token(
         data={"sub": username}, expires_delta=refresh_token_expires
     )
-    await user_service.update_user(username, None, None, refresh_token)
+    _ = await user_service.update_user(username, None, None, refresh_token)
     return Token(
         refresh_token=refresh_token, access_token=access_token, token_type="bearer"
     )
@@ -73,13 +73,12 @@ async def refresh_current_session(
 async def create_new_user(
     data: UserCreate,
     user_service: Annotated[UserService, Depends(get_user_service)],
-) -> User:
+) -> UserBase:
     user = await user_service.create_user(data.username, data.password)
-    assert isinstance(user, User)  # to silence the typechecker
     return user
 
 
-@router.get("/users/me/", response_model=UserResponse)
+@router.get("/users/me", response_model=UserResponse)
 async def read_users_me(
     user_service: Annotated[UserService, Depends(get_user_service)],
     token: Annotated[str, Depends(oauth2_scheme)],

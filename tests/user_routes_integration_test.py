@@ -26,6 +26,7 @@ def _run_migrations_and_setup(  # pyright: ignore[reportUnusedFunction]
         "SECRET_KEY", "075dceedeae24b879c14191991d80e2c9bd5035834391d4985adab81cfb055d2"
     )
     monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_SECONDS", "5")
+    monkeypatch.setenv("FASTAPI_ENV", "development")
 
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
@@ -48,7 +49,9 @@ def test_correct_auth_flow(client: TestClient) -> None:
     response = client.post(
         "/login", data={"username": "testuser1", "password": "testuser1"}
     )
+    print(response.json())
     assert response.status_code == 200
+
     data = response.json()
     assert "access_token" in data
     assert "refresh_token" in data
