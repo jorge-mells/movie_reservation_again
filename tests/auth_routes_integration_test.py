@@ -1,11 +1,22 @@
 from time import sleep
+from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
 
-def test_correct_auth_flow(client: TestClient) -> None:
+@pytest.mark.parametrize(
+    "config",
+    [
+        {"prefix": "", "id": 1, "username": "testuser1", "password": "testuser1"},
+        {"prefix": "/admin", "id": 1, "username": "admin1", "password": "admin1"},
+    ],
+    ids=["regular", "admin"],
+)
+def test_correct_auth_flow(config: dict[str, Any], client: TestClient) -> None:
     response = client.post(
-        "/login", data={"username": "testuser1", "password": "testuser1"}
+        f"{config['prefix']}/login",
+        data={"username": config["username"], "password": config["password"]},
     )
     print(response.json())
     assert response.status_code == 200
@@ -17,46 +28,73 @@ def test_correct_auth_flow(client: TestClient) -> None:
 
     # access protected route
     token = data["access_token"]
-    response = client.get("/users/me", headers={"Authorization": f"Bearer {token}"})
+    response = client.get(
+        f"{config['prefix']}/users/me", headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == 200
     assert response.json() == {
-        "id": 1,
-        "username": "testuser1",
+        "id": config["id"],
+        "username": config["username"],
         "refresh_token": data["refresh_token"],
     }
 
     # logout
     refresh_token = data["refresh_token"]
-    response = client.post("/logout", json={"refresh_token": refresh_token})
+    response = client.post(
+        f"{config['prefix']}/logout", json={"refresh_token": refresh_token}
+    )
     assert response.status_code == 200
     assert response.json() == {"message": "logged out successfully"}
 
     # test unauthorized access to protected route
-    response = client.get("/users/me", headers={"Authorization": f"Bearer {token}"})
+    response = client.get(
+        f"{config['prefix']}/users/me", headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == 401
 
 
-def test_incorrect_login(client: TestClient) -> None:
+@pytest.mark.parametrize(
+    "config",
+    [
+        {"prefix": "", "id": 1, "username": "testuser1", "password": "testuser2"},
+        {"prefix": "/admin", "id": 1, "username": "admin1", "password": "admin2"},
+    ],
+    ids=["regular", "admin"],
+)
+def test_incorrect_login(
+    request: pytest.FixtureRequest, config: dict[str, Any], client: TestClient
+) -> None:
     response = client.post(
-        "/login", data={"username": "testuser2", "password": "testuser3"}
+        f"{config['prefix']}/login",
+        data={"username": config["username"], "password": config["password"]},
     )
     assert response.status_code == 401
 
     # test unauthorized access to protected route
-    response = client.get("/users/me", headers={"Authorization": "Bearer invalid"})
+    response = client.get(
+        f"{config['prefix']}/users/me", headers={"Authorization": "Bearer invalid"}
+    )
     assert response.status_code == 401
 
     # test invalid logout
-    response = client.post("/logout", json={"refresh_token": "invalid_refresh_token"})
+    response = client.post(
+        f"{config['prefix']}/logout", json={"refresh_token": "invalid_refresh_token"}
+    )
     assert response.status_code == 401
 
     # test invalid refresh
-    response = client.post("/refresh", json={"refresh_token": "invalid_refresh_token"})
+    response = client.post(
+        f"{config['prefix']}/refresh", json={"refresh_token": "invalid_refresh_token"}
+    )
     assert response.status_code == 401
 
     # test admin incorrectly logging in as user
-    response = client.post("/login", data={"username": "admin1", "password": "admin1"})
-    assert response.status_code == 401
+    if request.node.callspec.id == "regular":
+        response = client.post(
+            f"{config['prefix']}/login",
+            data={"username": "admin1", "password": "admin1"},
+        )
+        assert response.status_code == 401
 
 
 def test_refresh_token(client: TestClient) -> None:

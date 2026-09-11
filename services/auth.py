@@ -1,3 +1,5 @@
+# OPTIMIZE: use oauth2 scopes for admin management; not separate schemes
+
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
@@ -20,7 +22,8 @@ class AuthService:
     def __init__(self, db: Session, settings: Settings, is_admin: bool = False) -> None:
         self.db: Session = db
         self.settings: Settings = settings
-        self.is_admin: bool = is_admin
+        self.user_class = Admin if is_admin else User
+        self.is_admin = is_admin
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.password_hash.verify(plain_password, hashed_password)
@@ -29,8 +32,9 @@ class AuthService:
         return self.password_hash.hash(password)
 
     def get_user(self, username: str | None) -> UserBase | None:
-        cls = Admin if self.is_admin else User
-        return self.db.exec(select(cls).where(cls.username == username)).one_or_none()
+        return self.db.exec(
+            select(self.user_class).where(self.user_class.username == username)
+        ).one_or_none()
 
     def authenticate_user(self, username: str, password: str) -> bool | UserBase:
         user = self.get_user(username)
@@ -48,8 +52,9 @@ class AuthService:
         password: str | None,
         refresh_token: str | None,
     ) -> UserBase:
-        cls = Admin if self.is_admin else User
-        user = self.db.exec(select(cls).where(cls.username == username)).one_or_none()
+        user = self.db.exec(
+            select(self.user_class).where(self.user_class.username == username)
+        ).one_or_none()
         if not user:
             raise ServiceError(
                 status_code=status.HTTP_409_CONFLICT, detail="user does not exist"
@@ -150,9 +155,8 @@ class AuthService:
             raise ServiceError(
                 status_code=status.HTTP_409_CONFLICT, detail="user already exists"
             )
-        cls = Admin if self.is_admin else User
         hashed_password = self._get_password_hash(password)
-        new_user = cls(username=username, hashed_password=hashed_password)
+        new_user = self.user_class(username=username, hashed_password=hashed_password)
         self.db.add(new_user)
         self.db.commit()
         self.db.refresh(new_user)

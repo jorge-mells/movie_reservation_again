@@ -67,6 +67,7 @@ async def refresh_current_session(
     assert isinstance(username, str)
     assert isinstance(is_admin, bool)
     access_token_expires = timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS)
+    # WARN: be aware of the is_admin info in tokens. This is to ensure users cannot escalate privileges(using a 'user' token to access admin info for example)
     access_token = user_service.create_token(
         data={"sub": username, "is_admin": is_admin}, expires_delta=access_token_expires
     )
