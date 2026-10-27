@@ -45,7 +45,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_branch }}
 
       - name: Update Deployment Status to Success
         uses: bobheadxi/deployments@v1
