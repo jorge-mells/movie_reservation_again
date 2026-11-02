@@ -5,11 +5,12 @@ on:
     workflows: ["CI"]
     types:
       - completed
-  workflow_dispatch:
 
 jobs:
-  deploy:
+  start-deploy:
     runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
     permissions:
       deployments: write
       contents: read
@@ -24,6 +25,13 @@ jobs:
           env: production
           ref: ${{ github.event.workflow_run.head_branch }}
 
+  publish:
+    runs-on: ubuntu-latest
+    needs: start-deploy
+    permissions:
+      packages: write
+      contents: read
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -47,10 +55,35 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_branch }}
 
-      - name: Update Deployment Status to Success
+  deploy:
+    runs-on: ubuntu-latest
+    needs: publish
+    strategy:
+      matrix:
+        host: ${{ fromJSON(vars.DEPLOY_HOSTS) }}
+    steps:
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_DEPLOY_PRIVATE_KEY }}
+
+      - name: Add hosts to known_hosts
+        run: |
+          echo "${{ matrix.host.ip }}" | xargs ssh-keyscan >> ~/.ssh/known_hosts
+
+      - name: Deploy to SSH
+        run: ssh ${{ matrix.host.user }}@${{ matrix.host.ip }} '${{ github.event.workflow_run.head_branch }}'
+
+  end-deploy:
+    runs-on: ubuntu-latest
+    needs: [start-deploy, deploy]
+    if: always() # run even if deploy failed
+    permissions:
+      deployments: write
+    steps:
+      - name: Update Deployment Status
         uses: bobheadxi/deployments@v1
         with:
           step: finish
-          status: success
+          status: ${{ needs.deploy.result }} # reflects actual result
           env: production
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          deployment_id: ${{ needs.start-deploy.outputs.deployment_id }}
