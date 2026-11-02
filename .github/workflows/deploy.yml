@@ -76,7 +76,7 @@ jobs:
   end-deploy:
     runs-on: ubuntu-latest
     needs: [start-deploy, deploy]
-    if: always() # run even if deploy failed
+    if: always() && needs.start-deploy.result != 'skipped'
     permissions:
       deployments: write
     steps:
@@ -84,6 +84,6 @@ jobs:
         uses: bobheadxi/deployments@v1
         with:
           step: finish
-          status: ${{ needs.deploy.result }} # reflects actual result
+          status: ${{ needs.deploy.result }}
           env: production
           deployment_id: ${{ needs.start-deploy.outputs.deployment_id }}
