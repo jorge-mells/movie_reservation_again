@@ -65,7 +65,7 @@ jobs:
       matrix:
         host: ${{ fromJSON(vars.DEPLOY_HOSTS) }}
     steps:
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.SSH_DEPLOY_PRIVATE_KEY }}
 
