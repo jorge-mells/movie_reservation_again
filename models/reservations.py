@@ -8,7 +8,7 @@ from models.users import User
 
 class Theater(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str
+    name: str = Field(unique=True)
 
 
 class Seat(SQLModel, table=True):
@@ -19,7 +19,7 @@ class Seat(SQLModel, table=True):
 
 class Genre(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str
+    name: str = Field(unique=True)
 
 
 class MovieGenres(SQLModel, table=True):
