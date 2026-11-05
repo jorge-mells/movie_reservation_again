@@ -1,15 +1,17 @@
 from collections.abc import Sequence
 from datetime import datetime
+from typing import Annotated
 
-from fastapi import status
+from fastapi import Depends, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col, select
 
 from models import Genre, Movie, Seat, Showtime, Theater
 from utils.exceptions import ServiceError
+from utils.utils import get_db
 
 
-class ReservationService:
+class AdminService:
     def __init__(self, db: Session) -> None:
         self.db: Session = db
 
@@ -217,3 +219,9 @@ class ReservationService:
 
     def get_showtimes(self) -> Sequence[Showtime]:
         return self.db.exec(select(Showtime)).all()
+
+
+def get_admin_service(
+    db: Annotated[Session, Depends(get_db)],
+) -> AdminService:
+    return AdminService(db)

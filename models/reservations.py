@@ -63,3 +63,41 @@ class ReservationResponse(SQLModel):
 class ReservationCreate(BaseModel):
     showtime_id: int
     seat_id: int
+
+
+class TheaterCreate(BaseModel):
+    name: str
+
+
+class SeatCreate(BaseModel):
+    num_seats: int
+
+
+class GenreCreate(BaseModel):
+    name: str
+
+
+class MovieCreate(BaseModel):
+    name: str
+    description: str
+    genre_names: list[str]
+
+
+class MovieUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    genre_names: list[str] | None = None
+
+
+class ShowtimeCreate(BaseModel):
+    movie_id: int
+    theater_id: int
+    start_date: datetime
+    end_date: datetime
+
+
+class ShowtimeUpdate(BaseModel):
+    movie_id: int | None = None
+    theater_id: int | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
