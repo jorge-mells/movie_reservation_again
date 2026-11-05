@@ -1,25 +1,24 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+import os
 
-from routers import auth, reservations
-from utils.exceptions import ServiceError
+from fastapi import FastAPI
+
+from routers import admin, auth, reservations
+from utils.logging import setup_logging
+from utils.middleware import LoggingMiddleware
 from utils.utils import lifespan
 
+setup_logging(debug=os.getenv("FASTAPI_ENV") == "development")
 app = FastAPI(lifespan=lifespan)
+
 
 # NOTE: include routers here
 app.include_router(auth.router)
 app.include_router(auth.admin_router)
 app.include_router(reservations.router)
+app.include_router(admin.router)
 
-
-@app.exception_handler(ServiceError)
-async def service_error_handler(_request: Request, exc: ServiceError) -> JSONResponse:
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
-        headers=getattr(exc, "headers", {}) or {},
-    )
+# NOTE: include middleware here
+app.add_middleware(LoggingMiddleware)
 
 
 @app.get("/")

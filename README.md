@@ -49,6 +49,17 @@ Start the development server
 ```
 uv run fastapi dev
 ```
+Or use the following to run fastapi with instrumented observability
+```
+OTEL_SERVICE_NAME=movie-reservation \
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
+OTEL_LOGS_EXPORTER=otlp \
+OTEL_TRACES_EXPORTER=otlp \
+OTEL_METRICS_EXPORTER=otlp \
+OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true \
+uv run opentelemetry-instrument fastapi dev
+```
 
 Try it with the following(replace 8000 with your actual port) or open a browser and type `localhost:8000` in the address bar:
 ```
