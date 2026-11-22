@@ -48,6 +48,7 @@ jobs:
           uv run mypy .
       - name: Check migrations are up to date
         run: |
+          export SECRET_KEY="$(openssl rand -hex 32)"
           uv run alembic upgrade head
           uv run alembic check
       - name: Test with pytest

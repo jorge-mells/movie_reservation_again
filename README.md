@@ -33,6 +33,7 @@ Setup the project
 ```
 uv sync
 uv run pre-commit install
+uv run pre-commit install --hook-type pre-push
 ```
 
 Copy the relevant environment variables from `.env.example` to `.env`. At the very minimum copy SECRET_KEY. If you don't want to use the test db, make sure to set DATABASE_URL.
