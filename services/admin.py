@@ -25,7 +25,7 @@ class AdminService:
             self.db.rollback()
             if "name" in str(exc).lower():
                 raise ServiceError(
-                    detail="theather name already taken",
+                    detail="theater name already taken",
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
         return theater
@@ -41,18 +41,16 @@ class AdminService:
         self.db.commit()
 
     def create_seats(self, theater_id: int, num_seats: int) -> Sequence[Seat]:
+        if num_seats < 0:
+            raise ServiceError(
+                detail="number of seats must be positive",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
         seats = [Seat(theater_id=theater_id) for _ in range(num_seats)]
-        try:
-            self.db.add_all(seats)
-            self.db.commit()
-            self.db.refresh(seats)
-        except IntegrityError as exc:
-            self.db.rollback()
-            if "name" in str(exc).lower():
-                raise ServiceError(
-                    detail="theather name already taken",
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                )
+        self.db.add_all(seats)
+        self.db.commit()
+        for seat in seats:
+            self.db.refresh(seat)
         return seats
 
     def delete_seat(self, seat_id: int) -> None:
@@ -187,7 +185,6 @@ class AdminService:
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> Showtime:
-        # BUG: possible toctou!!
         showtime = self.db.get(Showtime, showtime_id)
         if not showtime:
             raise ServiceError(
@@ -202,6 +199,23 @@ class AdminService:
             showtime.start_date = start_date
         if end_date is not None:
             showtime.end_date = end_date
+
+        existing = self.db.exec(
+            select(Showtime).where(
+                Showtime.theater_id == showtime.theater_id,
+                Showtime.id != showtime_id,
+            )
+        ).all()
+        for other in existing:
+            if (
+                other.start_date < showtime.end_date
+                and other.end_date > showtime.start_date
+            ):
+                raise ServiceError(
+                    detail="this showtime overlaps with another in the theater",
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
         self.db.add(showtime)
         self.db.commit()
         self.db.refresh(showtime)
