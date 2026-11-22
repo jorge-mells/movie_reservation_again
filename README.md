@@ -17,6 +17,8 @@ An intermediate movie reservation system PoC using fastapi to practice basic bac
 - Using ORMs
 - Database Seeding
 - User Authentication with JWT
+- Logging and Otel Instrumentation
+- Pre Generated Admins
 
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
