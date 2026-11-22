@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import Depends, status
 from sqlmodel import Session, col, select
 
+from models import Genre, Theater
 from models.reservations import Movie, Reservation, Seat, Showtime
 from models.users import User
 from utils.exceptions import ServiceError
@@ -17,6 +18,14 @@ class ReservationService:
     def get_movies(self) -> Sequence[Movie]:
         movies = self.db.exec(select(Movie)).all()
         return movies
+
+    def get_genres(self) -> Sequence[Genre]:
+        genres = self.db.exec(select(Genre)).all()
+        return genres
+
+    def get_theatres(self) -> Sequence[Theater]:
+        theatres = self.db.exec(select(Theater)).all()
+        return theatres
 
     def get_showtimes(self, movie_id: int) -> Sequence[Showtime]:
         showtimes = self.db.exec(

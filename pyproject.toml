@@ -7,11 +7,18 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.19.0",
     "fastapi[standard]>=0.141.1",
+    "greenlet>=3.5.6",
+    "opentelemetry-distro>=0.66b2",
+    "opentelemetry-exporter-otlp>=1.45.2",
+    "opentelemetry-instrumentation-fastapi>=0.66b2",
+    "opentelemetry-instrumentation-httpx>=0.66b2",
+    "opentelemetry-instrumentation-sqlalchemy>=0.66b2",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.14.2",
     "pyjwt>=2.13.0",
     "pymysql>=1.2.0",
     "python-dotenv>=1.2.2",
+    "python-json-logger>=4.2.0",
     "sqlmodel>=0.0.39",
     "zxcvbn-python>=4.4.24",
 ]

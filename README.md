@@ -17,6 +17,8 @@ An intermediate movie reservation system PoC using fastapi to practice basic bac
 - Using ORMs
 - Database Seeding
 - User Authentication with JWT
+- Logging and Otel Instrumentation
+- Pre Generated Admins
 
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
@@ -31,6 +33,7 @@ Setup the project
 ```
 uv sync
 uv run pre-commit install
+uv run pre-commit install --hook-type pre-push
 ```
 
 Copy the relevant environment variables from `.env.example` to `.env`. At the very minimum copy SECRET_KEY. If you don't want to use the test db, make sure to set DATABASE_URL.
@@ -48,6 +51,17 @@ uv run alembic upgrade head
 Start the development server
 ```
 uv run fastapi dev
+```
+Or use the following to run fastapi with instrumented observability
+```
+OTEL_SERVICE_NAME=movie-reservation \
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
+OTEL_LOGS_EXPORTER=otlp \
+OTEL_TRACES_EXPORTER=otlp \
+OTEL_METRICS_EXPORTER=otlp \
+OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true \
+uv run opentelemetry-instrument fastapi dev
 ```
 
 Try it with the following(replace 8000 with your actual port) or open a browser and type `localhost:8000` in the address bar:

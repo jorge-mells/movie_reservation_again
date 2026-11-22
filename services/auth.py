@@ -106,7 +106,6 @@ class AuthService:
             )
             username = payload.get("sub")
             is_admin = payload.get("is_admin")
-            print(f"isadmin: {is_admin}")
             if username is None or is_admin != self.is_admin:
                 raise credentials_exception
             token_data = TokenData(username=username)
@@ -168,5 +167,6 @@ def get_user_service(
     db: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> AuthService:
+    # FIX: this is a very bad decision since not all admin resources use /admin. think of a better fix!!
     is_admin = request.url.path.startswith("/admin")
     return AuthService(db, settings, is_admin)

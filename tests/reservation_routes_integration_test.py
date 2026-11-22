@@ -57,7 +57,7 @@ def test_user_deletes_reservation(client: TestClient) -> None:
     assert response.status_code == 200
 
     # user decides to delete their reservation for showtime 1 seat 1(reservation_id = 1)
-    response = client.delete(
+    _response = client.delete(
         "/users/me/reservations/1", headers={"Authorization": f"Bearer {token}"}
     )
 

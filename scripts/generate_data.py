@@ -40,7 +40,7 @@ def generate_theaters(num: int = 2) -> list[Theater]:
 
 def generate_seats(theaters: list[Theater], num: int = 50) -> list[Seat]:
     """Generate $num seats per theater"""
-    seats = []
+    seats: list[Seat] = []
     for theater in theaters:
         seats += [Seat(theater=theater) for _ in range(num)]
 

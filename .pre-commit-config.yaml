@@ -1,25 +1,39 @@
+fail_fast: true
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
 
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.16.3
-  hooks:
-    # Run the linter.
-    - id: ruff-check
-    # Run the formatter.
-    - id: ruff-format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.3
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
 
-- repo: local
-  hooks:
-    - id: mypy
-      name: mypy
-      entry: uv run mypy .
-      language: system
-      types: [python]
-      pass_filenames: false
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy .
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: act-installed
+        name: Check act-cli is installed (required for workflow changes)
+        entry: ./scripts/check_act_installed.sh
+        language: system
+        files: ^\.github/workflows/.*\.yml$
+        pass_filenames: false
+        stages: [pre-push]
+      - id: act-check
+        name: Run CI workflow locally with act
+        entry: ./scripts/check_ci.sh
+        language: system
+        files: ^\.github/workflows/.*\.yml$
+        pass_filenames: false
+        verbose: true
+        stages: [pre-push]

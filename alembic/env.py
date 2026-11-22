@@ -1,7 +1,21 @@
+from sqlmodel import SQLModel
+
+# WARN: naming_convention must be set before any model imports.
+# SQLModel.metadata is frozen once models are registered against it,
+# so setting this afterwards has no effect.
+naming_convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+SQLModel.metadata.naming_convention = naming_convention
+# WARN: END
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
-from sqlmodel import SQLModel
 
 import models  # pyright: ignore[reportUnusedImport]  # noqa: F401
 from alembic import context
@@ -51,6 +65,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        render_as_batch=True,  # fix sqlite not supporting alter table
     )
 
     with context.begin_transaction():
@@ -73,7 +88,11 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=True,  # fix sqlite not supporting alter table
+        )
 
         with context.begin_transaction():
             context.run_migrations()
