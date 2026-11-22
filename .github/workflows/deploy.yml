@@ -74,7 +74,25 @@ jobs:
           echo "${{ matrix.host.ip }}" | xargs ssh-keyscan >> ~/.ssh/known_hosts
 
       - name: Deploy to SSH
-        run: ssh ${{ matrix.host.user }}@${{ matrix.host.ip }} '${{ needs.publish.outputs.image_digest }}'
+        run: ssh ${{ matrix.host.user }}@${{ matrix.host.ip }} deploy '${{ needs.publish.outputs.image_digest }}'
+
+      - name: Build health check URLs
+        id: urls
+        run: |
+          urls=$(echo '${{ toJson(matrix.host.fqdns) }}' | jq -r '[.[] | "https://" + . + "/health"] | join("|")')
+          echo "urls=$urls" >> $GITHUB_OUTPUT
+
+      - name: Health check
+        id: healthcheck
+        uses: jtalk/url-health-check-action@v4
+        with:
+          url: ${{ steps.urls.outputs.urls }}
+          max-attempts: 3
+          retry-delay: 5s
+
+      - name: Rollback on failure
+        if: failure() && steps.healthcheck.conclusion == 'failure'
+        run: ssh ${{ matrix.host.user }}@${{ matrix.host.ip }} rollback
 
   end-deploy:
     runs-on: ubuntu-latest
